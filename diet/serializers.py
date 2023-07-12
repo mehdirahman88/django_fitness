@@ -5,6 +5,7 @@ from diet.models import DietRecord
 
 class DietRecordSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
+    fitness_user_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = DietRecord
@@ -12,11 +13,11 @@ class DietRecordSerializer(serializers.ModelSerializer):
 
 
 class DietRecordCreateSerializer(DietRecordSerializer):
-    pass
+    fitness_user_id = serializers.IntegerField(read_only=False)
 
 
 class DietRecordRWDSerializer(DietRecordSerializer):
-    fitness_user_id = serializers.ReadOnlyField()
+    pass
 
 
 class DietRecordListSerializer(DietRecordSerializer):

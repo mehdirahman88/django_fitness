@@ -5,7 +5,7 @@ from fitness_users.models import FitnessUser
 
 
 class DietRecord(models.Model):
-    fitness_user_id = models.ForeignKey(FitnessUser, on_delete=models.CASCADE, related_name='diet_records', null=False)
+    fitness_user = models.ForeignKey(FitnessUser, on_delete=models.CASCADE, related_name='diet_records', null=False)
     diet_date = models.DateField(null=False)
     diet_time = models.TimeField(null=False)
     diet_description = models.TextField(null=False)
@@ -14,5 +14,5 @@ class DietRecord(models.Model):
     record_created = models.DateTimeField(default=timezone.now, null=False)
 
     def __str__(self):
-        return f"{self.fitness_user} | {self.diet_date} | {self.diet_time} | {self.approximate_calorie}"
+        return f"{self.fitness_user_id} | {self.diet_date} | {self.diet_time} | {self.approximate_calorie}"
     
