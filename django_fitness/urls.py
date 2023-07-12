@@ -23,12 +23,9 @@ from rest_framework import permissions
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Jaseci API",
+        title="Fitness API",
         default_version='v1',
-        description="Welcome to the world of Jaseci",
-        terms_of_service="https://www.jaseci.org",
-        contact=openapi.Contact(email="jason@jaseci.org"),
-        license=openapi.License(name="Awesome IP"),
+        description="API for fitness management",
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
