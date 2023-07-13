@@ -7,10 +7,15 @@ from diet.constants import UserRoleChoice
 from diet.models import DietRecord
 
 
-class DietRecordCreate(generics.CreateAPIView):
+class DietRecordListCreate(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = DietRecord.objects.all()
-    serializer_class = serializers.DietRecordCreateSerializer
+    serializer_class = serializers.DietRecordListCreateSerializer
+
+    def get_queryset(self):
+        if self.request.user.role == UserRoleChoice.MANAGER or self.request.user.is_staff:
+            queryset = DietRecord.objects.all()
+            return queryset
+        raise PermissionDenied("You are not allowed to view all records.")
 
     def perform_create(self, serializer):
         fitness_user_id_in_request = serializer.validated_data['fitness_user_id']
@@ -25,15 +30,9 @@ class DietRecordRWD(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.DietRecordRWDSerializer
 
 
-class DietRecordList(generics.ListAPIView):
-    permission_classes = [permissions.IsAdminUser | custom_permissions.IsManagerFitnessUser]
-    queryset = DietRecord.objects.all()
-    serializer_class = serializers.DietRecordListSerializer
-
-
 class UserDietRecordList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.DietRecordListSerializer
+    serializer_class = serializers.DietRecordRWDSerializer
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']

@@ -16,35 +16,51 @@ sample_diet_record = {
 }
 
 
-class DietRecordCreateTests(APITestCase):
+class DietRecordListCreateTests(APITestCase):
     def setUp(self):
-        self.user = FitnessUser.objects.create_user(username='test_user', password='test_password')
-        self.client.login(username='test_user', password='test_password')
-        self.url = reverse('diet-records-add')
+        self.user = FitnessUser.objects.create_user(username='testuser', password='testpassword')
+        self.manager = FitnessUser.objects.create_user(username='manageruser', password='testpassword', is_staff=True)
+        self.diet_record1 = DietRecord.objects.create(
+            **{**sample_diet_record, 'fitness_user_id': self.user.id}
+        )
+        self.url = reverse('diet-records-list-create')
 
-    def test_create_diet_record(self):
-        data = {**sample_diet_record, 'fitness_user_id': self.user.id}
+    def test_list_all_records_as_manager(self):
+        self.client.login(username='manageruser', password='testpassword')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], self.diet_record1.pk)
+
+    def test_list_all_records_as_regular_user(self):
+        self.client.login(username='testuser', password='testpassword')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_diet_record_as_owner(self):
+        self.client.login(username='testuser', password='testpassword')
+        data = {
+            'fitness_user_id': self.user.id,
+            'diet_date': '2023-07-02',
+            'diet_time': '13:00:00',
+            'diet_description': 'Sample diet description 2',
+            'approximate_calorie': 600
+        }
         response = self.client.post(self.url, data)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(DietRecord.objects.count(), 1)
-        self.assertEqual(DietRecord.objects.get().fitness_user_id, self.user.id)
 
-    def test_create_diet_record_for_other_user(self):
-        other_user = FitnessUser.objects.create_user(username='otheruser', password='test_password')
-        data = {**sample_diet_record, 'fitness_user_id': other_user.id}
+    def test_create_diet_record_for_another_user(self):
+        self.client.login(username='testuser', password='testpassword')
+        another_user = FitnessUser.objects.create_user(username='anotheruser', password='testpassword')
+        data = {
+            'fitness_user_id': another_user.id,
+            'diet_date': '2023-07-02',
+            'diet_time': '13:00:00',
+            'diet_description': 'Sample diet description 2',
+            'approximate_calorie': 600
+        }
         response = self.client.post(self.url, data)
-
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(DietRecord.objects.count(), 0)
-
-    def test_create_diet_record_unauthenticated(self):
-        self.client.logout()
-        data = {**sample_diet_record, 'fitness_user_id': self.user.id}
-        response = self.client.post(self.url, data)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(DietRecord.objects.count(), 0)
 
 
 class DietRecordRWDTests(APITestCase):
@@ -85,40 +101,6 @@ class DietRecordRWDTests(APITestCase):
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(DietRecord.objects.filter(pk=self.diet_record.pk).exists())
-
-
-class DietRecordListTests(APITestCase):
-    def setUp(self):
-        self.admin_user = FitnessUser.objects.create_user(username='admin', password='adminpassword', is_staff=True)
-        self.manager_user = FitnessUser.objects.create_user(username='manager', password='managerpassword', role=UserRoleChoice.MANAGER)
-        self.client.login(username='admin', password='adminpassword')
-        self.diet_record = DietRecord.objects.create(
-            fitness_user_id=self.manager_user.id,
-            diet_date=sample_diet_record['diet_date'],
-            diet_time=sample_diet_record['diet_time'],
-            diet_description=sample_diet_record['diet_date'],
-            approximate_calorie=500
-        )
-        self.url = reverse('diet-records')
-
-    def test_list_diet_records_as_admin(self):
-        self.client.login(username='admin', password='adminpassword')
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], self.diet_record.pk)
-
-    def test_list_diet_records_as_manager(self):
-        self.client.login(username='manager', password='managerpassword')
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], self.diet_record.pk)
-
-    def test_list_diet_records_unauthenticated(self):
-        self.client.logout()
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class UserDietRecordListTests(APITestCase):

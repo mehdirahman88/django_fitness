@@ -6,7 +6,8 @@ from fitness_users.models import FitnessUser
 
 class FitnessUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    id = serializers.ReadOnlyField()
+    id = serializers.IntegerField(read_only=True)
+    username = serializers.CharField()
 
     class Meta:
         model = FitnessUser
@@ -18,7 +19,7 @@ class FitnessUserSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class FitnessUserCreateSerializer(FitnessUserSerializer):
+class FitnessUserListCreateSerializer(FitnessUserSerializer):
     pass
 
 

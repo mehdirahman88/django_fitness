@@ -4,16 +4,11 @@ from fitness_users import serializers
 from fitness_users.models import FitnessUser
 
 
-class FitnessUserCreate(generics.CreateAPIView):
+class FitnessUserListCreate(generics.ListCreateAPIView):
     queryset = FitnessUser.objects.all()
-    serializer_class = serializers.FitnessUserCreateSerializer
+    serializer_class = serializers.FitnessUserListCreateSerializer
 
 
 class FitnessUserInfoRW(generics.RetrieveUpdateAPIView):
-    queryset = FitnessUser.objects.all()
-    serializer_class = serializers.FitnessUserRWSerializer
-
-
-class FitnessUserList(generics.ListAPIView):
     queryset = FitnessUser.objects.all()
     serializer_class = serializers.FitnessUserRWSerializer
